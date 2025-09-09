@@ -33,6 +33,10 @@ body {
        color: #9effc7; 
   text-shadow: 0 0 2px #00994d;
     }
+    @media (max-width: 600px) {
+  h1.glitch {
+    text-shadow: 0 0 1px #00ff66, 0 0 3px #00ff66; /* even softer on phones */
+  }
 
     /* CHANGED: Top-only static/flicker layer */
     .glitch::before {

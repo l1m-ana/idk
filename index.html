@@ -95,8 +95,8 @@ body {
 @media (max-width: 600px) {
   #hotspot {
     /* still tucked off-screen, but smaller */
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     top: -28px;
     right: -28px;
 
@@ -538,7 +538,7 @@ if (outLeft || outRight) {
     const rect = spot.getBoundingClientRect();
     const el = document.createElement('div');
     el.className = 'pop-12';
-    el.textContent = '12';
+    el.textContent = '';
     const jitterX = (Math.random()*24) - 12;
     const jitterY = (Math.random()*10) - 5;
     const x = rect.left + rect.width/2 + jitterX;

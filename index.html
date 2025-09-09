@@ -68,8 +68,8 @@ body {
   position: fixed;
   top: -40px;     /* push up so only part shows */
   right: -40px;   /* push right so only a slice is visible */
-  width: 120px;   /* larger than visible area */
-  height: 120px;
+  width: 60px;   /* larger than visible area */
+  height: 60px;
   z-index: 9999;
   cursor: pointer;
 
@@ -80,8 +80,10 @@ body {
   background: radial-gradient(
     circle at top right,
     rgba(255,255,210,0.9) 0%,    /* bright core */
-    rgba(255,250,180,0.6) 35%,   /* warm halo */
-    rgba(255,240,150,0.25) 70%,  /* outer faint glow */
+    rgba(255,250,180,0.6) 10%,   /* warm halo */
+    rgba(255,245,100,0.4) 25%,   /* warm halo */
+
+    rgba(255,240,50,0.25) 50%,  /* outer faint glow */
     transparent 100%             /* smooth fade out */
   );
 

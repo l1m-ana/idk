@@ -83,5 +83,231 @@ And something else is watching.<br>
 
   </p>
   <p><em>[ END OF TRANSMISSION ]</em></p>
+  <!-- === PONG: sticky footer game === -->
+<section id="pong-footer" style="
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  background:#000;
+  border-top:1px solid #333;
+  padding: 12px 0 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  z-index: 2;">
+  <div style="color:#bbb;font-family:Courier New,monospace;font-size:12px;margin-bottom:6px;letter-spacing:.08em;">
+    PONG — W/S or ↑/↓ to move • Space to pause
+  </div>
+  <canvas id="pong" style="display:block;max-width: 100%;"></canvas>
+</section>
+
+<script>
+(() => {
+  const canvas = document.getElementById('pong');
+  const footer = document.getElementById('pong-footer');
+  const ctx = canvas.getContext('2d');
+
+  // Responsive sizing
+  function resize() {
+    const maxW = Math.min(footer.clientWidth - 24, 900);
+    canvas.width  = Math.max(480, maxW);
+    canvas.height = Math.round(canvas.width * 0.45); // wide, short field
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Game objects (units scale with canvas)
+  const state = {
+    paused: false,
+    scoreL: 0,
+    scoreR: 0,
+    keys: { up:false, down:false, w:false, s:false }
+  };
+
+  function dims() {
+    const PAD_W = Math.max(6, Math.round(canvas.width * 0.012));
+    const PAD_H = Math.max(40, Math.round(canvas.height * 0.3));
+    const BALL  = Math.max(6, Math.round(canvas.width * 0.012));
+    const SPEED = canvas.height * 0.75; // px/sec baseline
+    return { PAD_W, PAD_H, BALL, SPEED };
+  }
+
+  const player = { x: 0, y: 0, vy: 0 };
+  const ai      = { x: 0, y: 0, vy: 0 };
+  const ball    = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
+
+  function resetPositions(servingLeft = Math.random() < 0.5) {
+    const { PAD_W, PAD_H } = dims();
+    player.x = 16;
+    player.y = (canvas.height - PAD_H) / 2;
+    ai.x = canvas.width - PAD_W - 16;
+    ai.y = (canvas.height - PAD_H) / 2;
+
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    const angle = (Math.random() * 0.6 - 0.3); // small vertical variation
+    const dir = servingLeft ? -1 : 1;
+    const base = dims().SPEED * 0.85;
+    ball.speed = base;
+    ball.vx = Math.cos(angle) * ball.speed * dir;
+    ball.vy = Math.sin(angle) * ball.speed;
+  }
+
+  resetPositions();
+
+  // Input
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowUp') state.keys.up = true;
+    if (e.code === 'ArrowDown') state.keys.down = true;
+    if (e.key === 'w' || e.key === 'W') state.keys.w = true;
+    if (e.key === 's' || e.key === 'S') state.keys.s = true;
+    if (e.code === 'Space') state.paused = !state.paused;
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowUp') state.keys.up = false;
+    if (e.code === 'ArrowDown') state.keys.down = false;
+    if (e.key === 'w' || e.key === 'W') state.keys.w = false;
+    if (e.key === 's' || e.key === 'S') state.keys.s = false;
+  });
+
+  // Simple touch controls (left half = up, right half = down)
+  canvas.addEventListener('touchstart', handleTouch, {passive:true});
+  canvas.addEventListener('touchmove', handleTouch, {passive:true});
+  canvas.addEventListener('touchend', () => { state.keys.up = state.keys.down = false; });
+  function handleTouch(e){
+    const t = e.touches[0];
+    if (!t) return;
+    const r = canvas.getBoundingClientRect();
+    const y = t.clientY - r.top;
+    const mid = canvas.height/2;
+    state.keys.up = y < mid;
+    state.keys.down = y >= mid;
+  }
+
+  // Physics + AI
+  let last = performance.now();
+  function step(now){
+    const dt = Math.min(0.033, (now - last)/1000); // clamp dt
+    last = now;
+    if (!state.paused) update(dt);
+    draw();
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  function update(dt){
+    const { PAD_W, PAD_H, BALL, SPEED } = dims();
+
+    // Player movement
+    const accel = SPEED * 8;
+    const maxVy = SPEED * 0.95;
+    let target = 0;
+    if (state.keys.up || state.keys.w) target = -maxVy;
+    if (state.keys.down || state.keys.s) target =  maxVy;
+    // simple smoothing
+    player.vy += (target - player.vy) * Math.min(1, dt * 12);
+    player.y += player.vy * dt;
+    player.y = Math.max(0, Math.min(canvas.height - PAD_H, player.y));
+
+    // AI follows ball with limited speed + prediction
+    const aiCenter = ai.y + PAD_H/2;
+    const targetY = ball.y + ball.vy * 0.12; // small lead
+    const aiSpeed = SPEED * 0.75;
+    if (aiCenter < targetY - 6) ai.vy = aiSpeed;
+    else if (aiCenter > targetY + 6) ai.vy = -aiSpeed;
+    else ai.vy = 0;
+    ai.y += ai.vy * dt;
+    ai.y = Math.max(0, Math.min(canvas.height - PAD_H, ai.y));
+
+    // Ball movement
+    ball.x += ball.vx * dt;
+    ball.y += ball.vy * dt;
+
+    // Top/bottom bounce
+    if (ball.y <= 0 && ball.vy < 0) { ball.y = 0; ball.vy *= -1; }
+    if (ball.y >= canvas.height - BALL && ball.vy > 0) {
+      ball.y = canvas.height - BALL; ball.vy *= -1;
+    }
+
+    // Paddle collisions
+    // Left
+    if (ball.x <= player.x + PAD_W && ball.x >= player.x - BALL) {
+      if (ball.y + BALL >= player.y && ball.y <= player.y + PAD_H) {
+        ball.x = player.x + PAD_W;
+        const hitPos = ((ball.y + BALL/2) - (player.y + PAD_H/2)) / (PAD_H/2); // -1..1
+        const ang = hitPos * 0.6; // max ~34°
+        ball.speed = Math.min(ball.speed * 1.05, SPEED * 1.8);
+        const sp = ball.speed;
+        ball.vx = Math.abs(Math.cos(ang) * sp);
+        ball.vy = Math.sin(ang) * sp;
+      }
+    }
+    // Right
+    if (ball.x + BALL >= ai.x && ball.x <= ai.x + PAD_W) {
+      if (ball.y + BALL >= ai.y && ball.y <= ai.y + PAD_H) {
+        ball.x = ai.x - BALL;
+        const hitPos = ((ball.y + BALL/2) - (ai.y + PAD_H/2)) / (PAD_H/2);
+        const ang = hitPos * 0.6;
+        ball.speed = Math.min(ball.speed * 1.05, SPEED * 1.8);
+        const sp = ball.speed;
+        ball.vx = -Math.abs(Math.cos(ang) * sp);
+        ball.vy = Math.sin(ang) * sp;
+      }
+    }
+
+    // Scoring
+    const outLeft = ball.x < -BALL;
+    const outRight = ball.x > canvas.width + BALL;
+    if (outLeft || outRight) {
+      if (outLeft) state.scoreR++;
+      if (outRight) state.scoreL++;
+      resetPositions(outRight); // serve toward the player who conceded
+    }
+  }
+
+  function draw(){
+    const { PAD_W, PAD_H, BALL } = dims();
+
+    // Clear
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Midline
+    ctx.strokeStyle = '#222';
+    ctx.setLineDash([8,10]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2, 0);
+    ctx.lineTo(canvas.width/2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Paddles & ball
+    ctx.fillStyle = '#e6e6e6';
+    ctx.fillRect(player.x, player.y, PAD_W, PAD_H);
+    ctx.fillRect(ai.x, ai.y, PAD_W, PAD_H);
+    ctx.fillRect(ball.x, ball.y, BALL, BALL);
+
+    // Score
+    ctx.fillStyle = '#bbb';
+    ctx.font = `bold ${Math.round(canvas.height*0.18)}px Courier New, monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(state.scoreL, canvas.width*0.25, 8);
+    ctx.fillText(state.scoreR, canvas.width*0.75, 8);
+
+    // Pause overlay
+    if (state.paused) {
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#f33';
+      ctx.font = `bold ${Math.round(canvas.height*0.12)}px Courier New, monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+    }
+  }
+})();
+</script>
+<!-- === /PONG === -->
 </body>
 </html>

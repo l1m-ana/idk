@@ -90,6 +90,50 @@ body {
   /* same flicker animation */
   animation: flickerRay 8s steps(1, end) infinite;
 }
+
+/* Mobile-only tweaks */
+@media (max-width: 600px) {
+  #hotspot {
+    /* still tucked off-screen, but smaller */
+    width: 80px;
+    height: 80px;
+    top: -28px;
+    right: -28px;
+
+    /* softer glow on mobile */
+    background: radial-gradient(
+      circle at top right,
+      rgba(255,255,210,0.65) 0%,
+      rgba(255,250,180,0.38) 35%,
+      rgba(255,240,150,0.15) 70%,
+      transparent 100%
+    );
+
+    /* use a dimmer animation on mobile */
+    animation-name: flickerRayMobile;
+  }
+
+  @keyframes flickerRayMobile {
+    /* mostly dark */
+    0%, 59%    { opacity: 0.03; filter: brightness(0.2); visibility: hidden; }
+
+    /* shorter, dimmer pulses */
+    60%        { opacity: 0.7;  filter: brightness(0.7);  visibility: visible; }
+    62%        { opacity: 0.35; filter: brightness(0.5);  visibility: visible; }
+    64%        { opacity: 0.7;  filter: brightness(0.75); visibility: visible; }
+    66%        { opacity: 0.03; filter: brightness(0.2);  visibility: hidden; }
+
+    68%        { opacity: 0.7;  filter: brightness(0.7);  visibility: visible; }
+    70%        { opacity: 0.03; filter: brightness(0.2);  visibility: hidden; }
+
+    74%        { opacity: 0.7;  filter: brightness(0.7);  visibility: visible; }
+    76%        { opacity: 0.03; filter: brightness(0.2);  visibility: hidden; }
+
+    85%        { opacity: 0.7;  filter: brightness(0.7);  visibility: visible; }
+    86%, 100%  { opacity: 0.03; filter: brightness(0.2);  visibility: hidden; }
+  }
+}
+    
 /* Mostly dark; short “on” bursts; only clickable when visible */
 @keyframes flickerRay {
   /* long dark lead-in */
@@ -117,29 +161,30 @@ body {
 
 
 
- .pop-12 {
-    position: fixed;
-    font-family: "Courier New", monospace;
-    font-weight: 700;
-    color: #12ff85;
-    text-shadow: 0 0 4px #12ff85, 0 0 8px rgba(18,255,133,0.6);
-    pointer-events: none;
-    z-index: 10000;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-    animation: float12 900ms ease-out forwards;
-  }
+.pop-12 {
+  position: fixed;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  color: #12ff85;
+  text-shadow: 0 0 4px #12ff85, 0 0 8px rgba(18,255,133,0.6);
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.85);
+  animation: float12down 900ms ease-out forwards;
+}
 
-  @keyframes float12 {
-    0%   { opacity: 0; transform: translate(-50%, -50%) translateY(8px) scale(0.85); }
-    10%  { opacity: 1; }
-    70%  { opacity: 1; transform: translate(-50%, -50%) translateY(-28px) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-44px) scale(1.06); }
-  }
+@keyframes float12down {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translateY(-8px)  scale(0.85); }
+  10%  { opacity: 1; }
+  70%  { opacity: 1; transform: translate(-50%, -50%) translateY(28px)  scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(44px)  scale(1.06); }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    .pop-12 { animation-duration: 200ms; }
-  }
+/* keep reduced-motion support */
+@media (prefers-reduced-motion: reduce) {
+  .pop-12 { animation-duration: 200ms; }
+}
   </style>
 </head>
 

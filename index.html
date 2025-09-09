@@ -183,7 +183,7 @@ And something else is watching.<br>
   const PLAYER_WIN_POINTS = 2;     // your per-match winning score
   const AI_WIN_POINTS = 100;         // AI per-match winning score
 
-  const GLITCH_TRIGGER_POINTS = 6; // cumulative AI points across all rounds to trigger glitch
+const GLITCH_TRIGGER_POINTS = 6; // cumulative AI points to trigger glitch
   const GLITCH_CLEAR_ON_SCORE = true; // if true, your next point clears the glitch
 
   const AI_MATCH_SKIP = 2;         // when AI match wins would equal this number...
@@ -362,28 +362,32 @@ And something else is watching.<br>
     const outLeft = ball.x < -BALL;
     const outRight = ball.x > canvas.width + BALL;
     if (outLeft || outRight) {
-      if (outLeft) {
-        state.scoreR++;
-        state.aiPointTotal++;
+    if (outLeft) {
+  state.scoreR++;
+  state.aiPointTotal++;
 
-
-  // 👇 put the skip logic right here
   if (state.scoreR === AI_MATCH_SKIP) {
     state.scoreR = AI_MATCH_SKIP_TO;
   }
 
-        // Trigger glitch at configured cumulative AI points
-        if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
-          state.glitchActive = true;
-        }
-      } else if (outRight) {
-        state.scoreL++;
+  // Trigger glitch when AI hits threshold
+  if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
+    state.glitchActive = true; // freezes AI only
+  }
 
-        // Clear glitch if configured
-        if (state.glitchActive && GLITCH_CLEAR_ON_SCORE) {
-          state.glitchActive = false;
-        }
-      }
+  // Any score clears glitch
+  if (state.glitchActive) {
+    state.glitchActive = false;
+  }
+
+} else if (outRight) {
+  state.scoreL++;
+
+  // Any score clears glitch
+  if (state.glitchActive) {
+    state.glitchActive = false;
+  }
+}
 
       // End-of-match checks
       if (state.scoreL >= PLAYER_WIN_POINTS) {
@@ -431,7 +435,7 @@ And something else is watching.<br>
     ctx.textBaseline = 'top';
     ctx.fillText(state.scoreL, canvas.width*0.25, 8);
     ctx.fillText(state.scoreR, canvas.width*0.75, 8);
-
+/*
     // Glitch overlay
     if (state.glitchActive) {
       ctx.fillStyle = 'rgba(255,0,0,0.08)';
@@ -449,7 +453,7 @@ And something else is watching.<br>
       ctx.fillStyle = '#fcc';
       ctx.fillText('Score a point to restore control', canvas.width/2, canvas.height*0.64);
     }
-
+*/
     // Game Over
     if (state.gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';

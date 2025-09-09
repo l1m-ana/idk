@@ -65,30 +65,29 @@ body {
     100% { clip-path: inset(0 0 62% 0); transform: translate(1px, 0); }
   }
 #hotspot {
-   position: fixed;
-  top: 0;
-  right: 0;
-  width: 30px;       /* smaller size */
-  height: 30px;
+  position: fixed;
+  top: -40px;     /* push up so only part shows */
+  right: -40px;   /* push right so only a slice is visible */
+  width: 120px;   /* larger than visible area */
+  height: 120px;
   z-index: 9999;
   cursor: pointer;
 
-  /* smooth, round light glow */
+  border-radius: 50%;   /* keep it round */
+  mix-blend-mode: screen;
+
+  /* anchored glow in the corner */
   background: radial-gradient(
     circle at top right,
-    rgba(255, 255, 210, 0.9) 0%,    /* bright core */
-    rgba(255, 250, 180, 0.6) 20%,   /* soft warm halo */
-    rgba(255, 240, 150, 0.25) 50%,  /* outer faint glow */
-    rgba(255, 220, 120, 0.08) 75%, 
-    transparent 100%                /* smooth fade out */
+    rgba(255,255,210,0.9) 0%,    /* bright core */
+    rgba(255,250,180,0.6) 35%,   /* warm halo */
+    rgba(255,240,150,0.25) 70%,  /* outer faint glow */
+    transparent 100%             /* smooth fade out */
   );
 
-  border-radius: 50%;   /* round shape */
-    mix-blend-mode: screen;
-
+  /* same flicker animation */
   animation: flickerRay 8s steps(1, end) infinite;
 }
-
 /* Mostly dark; short “on” bursts; only clickable when visible */
 @keyframes flickerRay {
   /* long dark lead-in */

@@ -336,10 +336,11 @@ And something else is watching.<br>
         state.scoreR++;
         state.aiPointTotal++;
 
-          // Count AI match wins; skip configured number
-        let nextWins = state.aiMatchWins + 1;
-        if (nextWins === AI_MATCH_SKIP) nextWins = AI_MATCH_SKIP_TO;
-        state.aiMatchWins = nextWins;
+
+  // 👇 put the skip logic right here
+  if (state.scoreR === AI_MATCH_SKIP) {
+    state.scoreR = AI_MATCH_SKIP_TO;
+  }
 
         // Trigger glitch at configured cumulative AI points
         if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {

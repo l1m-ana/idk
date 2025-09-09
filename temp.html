@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Something Feels Wrong</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #eee;
+      font-family: "Courier New", monospace;
+      line-height: 1.6;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      color: #ff0000;
+      text-shadow: 0 0 5px #ff0000;
+    }
+
+    p {
+      max-width: 700px;
+      margin: 1rem auto;
+    }
+
+    .glitch {
+      font-size: 1.5rem;
+      color: #fff;
+      position: relative;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      clip: rect(0, 900px, 0, 0);
+    }
+
+    .glitch::before {
+      animation: glitchTop 2s infinite linear alternate-reverse;
+      color: #0ff;
+    }
+
+    .glitch::after {
+      animation: glitchBottom 1.5s infinite linear alternate-reverse;
+      color: #f0f;
+    }
+
+    @keyframes glitchTop {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      20% { clip: rect(0, 9999px, 50%, 0); transform: translate(-2px, -2px); }
+      40% { clip: rect(0, 9999px, 0, 0); }
+      60% { clip: rect(0, 9999px, 40%, 0); transform: translate(2px, 2px); }
+      80% { clip: rect(0, 9999px, 0, 0); }
+      100% { clip: rect(0, 9999px, 60%, 0); transform: translate(-1px, 0); }
+    }
+
+    @keyframes glitchBottom {
+      0% { clip: rect(0, 9999px, 0, 0); }
+      20% { clip: rect(50%, 9999px, 9999px, 0); transform: translate(2px, 0); }
+      40% { clip: rect(0, 9999px, 0, 0); }
+      60% { clip: rect(40%, 9999px, 9999px, 0); transform: translate(-2px, -1px); }
+      80% { clip: rect(0, 9999px, 0, 0); }
+      100% { clip: rect(60%, 9999px, 9999px, 0); transform: translate(1px, 1px); }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="glitch" data-text="SOMETHING IS WRONG">SOMETHING IS WRONG</h1>
+  <p>
+    Day after day. Wake. Class. Study. Sleep. Repeat.<br>
+    Do you ever wonder if these choices are your own?<br>
+    Or if someone… something… is watching?
+  </p>
+  <p><em>[ END OF TRANSMISSION ]</em></p>
+</body>
+</html>

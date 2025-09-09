@@ -66,8 +66,55 @@ body {
       80%  { clip-path: inset(0 0 70% 0); transform: translate(0, 1px); }
       100% { clip-path: inset(0 0 62% 0); transform: translate(1px, 0); }
     }
+
+      /* Secret bright spot (bottom-right). Move with 'top/left' if you prefer another corner */
+#hotspot {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 9999;
+
+  /* Bright glow with a hot core */
+  background: radial-gradient(circle at 35% 35%, #fff 0%, #fff 25%, #ffe066 45%, #ff9f1c 65%, rgba(255,159,28,0.0) 75%);
+  box-shadow:
+    0 0 10px 4px #ffd166,
+    0 0 28px 10px rgba(255, 159, 28, 0.55),
+    inset 0 0 10px rgba(255,255,255,0.7);
+}
+
+/* Floating “12”s */
+.pop-12 {
+  position: fixed;
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  color: #12ff85;
+  text-shadow: 0 0 4px #12ff85, 0 0 8px rgba(18,255,133,0.6);
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.85);
+  animation: float12 900ms ease-out forwards;
+}
+      @keyframes float12 {
+  0%   { opacity: 0; transform: translate(-50%, -50%) translateY(8px) scale(0.85); }
+  10%  { opacity: 1; }
+  70%  { opacity: 1; transform: translate(-50%, -50%) translateY(-28px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-44px) scale(1.06); }
+}
+
+/* Optional: tone down motion for people who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pop-12 { animation-duration: 200ms; }
+}
   </style>
 </head>
+
+  <div id="hotspot" aria-label="secret"></div>
+
 <body>
   <h1 class="glitch" data-text="WHAT'S WRONG">WHAT'S WRONG</h1>
   <p>
@@ -401,5 +448,39 @@ And something else is watching.<br>
 
 
 <!-- === /PONG === -->
+
+  <script>
+(() => {
+  const spot = document.getElementById('hotspot');
+  let timer = null;
+
+  function spawn12(){
+    const rect = spot.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'pop-12';
+    el.textContent = '12';
+    const jitterX = (Math.random()*24) - 12;
+    const jitterY = (Math.random()*10) - 5;
+    const x = rect.left + rect.width/2 + jitterX;
+    const y = rect.top  + rect.height/2 + jitterY;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+
+  function start(){ if (timer) return; spawn12(); timer = setInterval(spawn12, 140); }
+  function stop(){ clearInterval(timer); timer = null; }
+
+  // Mouse
+  spot.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); start(); });
+  window.addEventListener('mouseup', stop);
+
+  // Touch
+  spot.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); start(); }, { passive:false });
+  window.addEventListener('touchend', stop, { passive:true });
+  window.addEventListener('touchcancel', stop, { passive:true });
+})();
+</script>
 </body>
 </html>

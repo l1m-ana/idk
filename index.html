@@ -266,17 +266,17 @@ And something else is watching.<br>
       }
     }
 
-    // Scoring + end conditions (13 for you, 21 for AI)
+    // Scoring + end conditions (1 for you, 100 for AI)
     const outLeft = ball.x < -BALL;
     const outRight = ball.x > canvas.width + BALL;
     if (outLeft || outRight) {
       if (outLeft) state.scoreR++;
       if (outRight) state.scoreL++;
 
-      if (state.scoreL >= 13) {
+      if (state.scoreL >= 1) {
         state.gameOver = true;
         state.winner = "player";
-      } else if (state.scoreR >= 4) {
+      } else if (state.scoreR >= 100) {
         state.gameOver = true;
         state.winner = "ai";
       } else {

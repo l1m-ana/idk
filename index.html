@@ -66,21 +66,45 @@ body {
   }
 
  /* ✅ GLOBAL hotspot styles (apply on desktop too) */
-  #hotspot {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    cursor: pointer;
-    z-index: 9999;
-    background: radial-gradient(circle at 35% 35%, #fff 0%, #fff 25%, #ffe066 45%, #ff9f1c 65%, rgba(255,159,28,0.0) 75%);
+#hotspot {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 9999;
+
+  background: radial-gradient(circle at 50% 50%, #ffffcc 0%, #ffe066 40%, rgba(255, 200, 50, 0.0) 80%);
+  box-shadow:
+    0 0 6px 2px #ffe066,
+    0 0 20px 6px rgba(255, 180, 50, 0.6),
+    inset 0 0 8px rgba(255, 255, 200, 0.9);
+
+  border-radius: 6px; /* less round, more like a bulb fixture */
+  animation: flicker 1.8s infinite;
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 80%, 100% {
+    opacity: 1;
     box-shadow:
-      0 0 10px 4px #ffd166,
-      0 0 28px 10px rgba(255, 159, 28, 0.55),
-      inset 0 0 10px rgba(255,255,255,0.7);
+      0 0 6px 2px #ffe066,
+      0 0 20px 6px rgba(255, 180, 50, 0.6),
+      inset 0 0 8px rgba(255, 255, 200, 0.9);
   }
+  20%, 22% {
+    opacity: 0.3;
+    box-shadow: none;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  60% {
+    opacity: 0.6;
+  }
+}
+
 
 
  .pop-12 {

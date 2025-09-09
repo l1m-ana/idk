@@ -68,8 +68,8 @@ body {
   position: fixed;
   top: -40px;     /* push up so only part shows */
   right: -40px;   /* push right so only a slice is visible */
-  width: 60px;   /* larger than visible area */
-  height: 60px;
+  width: 100px;   /* larger than visible area */
+  height: 100px;
   z-index: 9999;
   cursor: pointer;
 
@@ -185,7 +185,7 @@ And something else is watching.<br>
   const AI_WIN_POINTS = 100;         // AI per-match winning score
 
 const GLITCH_TRIGGER_POINTS = 2; // cumulative AI points to trigger glitch
-  const GLITCH_CLEAR_ON_SCORE = true; // if true, your next point clears the glitch
+  //const GLITCH_CLEAR_ON_SCORE = true; // if true, your next point clears the glitch
 
   const AI_MATCH_SKIP = 6;         // when AI match wins would equal this number...
   const AI_MATCH_SKIP_TO = 8;      // ...jump straight to this number instead
@@ -359,50 +359,47 @@ const GLITCH_TRIGGER_POINTS = 2; // cumulative AI points to trigger glitch
       }
     }
 
-    // Scoring
-    const outLeft = ball.x < -BALL;
-    const outRight = ball.x > canvas.width + BALL;
-    if (outLeft || outRight) {
-    if (outLeft) {
-  state.scoreR++;
-  state.aiPointTotal++;
+ // Scoring
+const outLeft  = ball.x < -BALL;                 // AI scores
+const outRight = ball.x > canvas.width + BALL;   // Player scores
 
-  if (state.scoreR === AI_MATCH_SKIP) {
-    state.scoreR = AI_MATCH_SKIP_TO;
+if (outLeft || outRight) {
+  const glitchWasActive = state.glitchActive; // snapshot BEFORE handling this score
+
+  if (outLeft) {
+    state.scoreR++;
+    state.aiPointTotal++;
+
+    if (state.scoreR === AI_MATCH_SKIP) {
+      state.scoreR = AI_MATCH_SKIP_TO;
+    }
+
+    // Trigger freeze when AI reaches the threshold
+    if (!glitchWasActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
+      state.glitchActive = true;  // freezes AI next rally
+    }
+
+  } else if (outRight) {
+    state.scoreL++;
   }
 
-  // Trigger glitch when AI hits threshold
-  if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
-    state.glitchActive = true; // freezes AI only
-  }
-
-  // Any score clears glitch
-  if (state.glitchActive) {
+  // Clear freeze on ANY score, but only if it was already active before this point
+  if (glitchWasActive) {
     state.glitchActive = false;
   }
 
-} else if (outRight) {
-  state.scoreL++;
-
-  // Any score clears glitch
-  if (state.glitchActive) {
-    state.glitchActive = false;
+  // End-of-match checks
+  if (state.scoreL >= PLAYER_WIN_POINTS) {
+    state.gameOver = true;
+    state.winner = "player";
+  } else if (state.scoreR >= AI_WIN_POINTS) {
+    state.gameOver = true;
+    state.winner = "ai";
+  } else {
+    resetPositions(outRight); // serve toward conceding side
   }
 }
 
-      // End-of-match checks
-      if (state.scoreL >= PLAYER_WIN_POINTS) {
-        state.gameOver = true;
-        state.winner = "player";
-      } else if (state.scoreR >= AI_WIN_POINTS) {
-        state.gameOver = true;
-        state.winner = "ai";
-
-      
-      } else {
-        resetPositions(outRight); // serve toward conceding side
-      }
-    }
   }
 
   // ===== DRAW =====

@@ -102,23 +102,41 @@ And something else is watching.<br>
   const footer = document.getElementById('pong-footer');
   const ctx = canvas.getContext('2d');
 
+  // ===== CONFIG =====
+  const PLAYER_WIN_POINTS = 13;     // your per-match winning score
+  const AI_WIN_POINTS = 21;         // AI per-match winning score
+
+  const GLITCH_TRIGGER_POINTS = 45; // cumulative AI points across all rounds to trigger glitch
+  const GLITCH_CLEAR_ON_SCORE = true; // if true, your next point clears the glitch
+
+  const AI_MATCH_SKIP = 88;         // when AI match wins would equal this number...
+  const AI_MATCH_SKIP_TO = 89;      // ...jump straight to this number instead
+
+  // ===== SIZING =====
   function resize() {
-    const maxW = Math.min(footer.clientWidth - 24, 900);
+    const maxW = Math.min(footer ? footer.clientWidth - 24 : window.innerWidth - 24, 900);
     canvas.width  = Math.max(480, maxW);
     canvas.height = Math.round(canvas.width * 0.45);
   }
   resize();
   window.addEventListener('resize', resize);
 
+  // Ensure touch doesn't scroll the page while playing
+  canvas.style.touchAction = 'none';
+
+  // ===== STATE =====
   const state = {
     paused: false,
-    scoreL: 0,
-    scoreR: 0,
+    scoreL: 0,   // you
+    scoreR: 0,   // ai
     keys: { up:false, down:false, w:false, s:false },
     gameOver: false,
     winner: null,
-    touching: false,
-    touchY: null
+
+    // Meta
+    aiPointTotal: 0,   // cumulative AI points across all rounds
+    aiMatchWins: 0,    // number of matches AI has won
+    glitchActive: false
   };
 
   function dims() {
@@ -130,8 +148,8 @@ And something else is watching.<br>
   }
 
   const player = { x: 0, y: 0, vy: 0 };
-  const ai      = { x: 0, y: 0, vy: 0 };
-  const ball    = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
+  const ai     = { x: 0, y: 0, vy: 0 };
+  const ball   = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
 
   function resetPositions(servingLeft = Math.random() < 0.5) {
     const { PAD_W, PAD_H } = dims();
@@ -151,7 +169,8 @@ And something else is watching.<br>
   }
   resetPositions();
 
-  // Keyboard input
+  // ===== INPUT =====
+  // Keyboard
   window.addEventListener('keydown', (e) => {
     if (e.code === 'ArrowUp') state.keys.up = true;
     if (e.code === 'ArrowDown') state.keys.down = true;
@@ -166,27 +185,26 @@ And something else is watching.<br>
     if (e.key === 's' || e.key === 'S') state.keys.s = false;
   });
 
-  // Touch input (drag to move paddle)
+  // Touch (drag anywhere on canvas to move your paddle)
+  let touchY = null, touching = false;
   function toCanvasY(clientY) {
     const r = canvas.getBoundingClientRect();
     return (clientY - r.top) * (canvas.height / r.height);
   }
   function onTouch(e) {
     if (e.touches && e.touches[0]) {
-      e.preventDefault(); // stop page scroll
-      state.touching = true;
-      state.touchY = toCanvasY(e.touches[0].clientY);
+      e.preventDefault();
+      touching = true;
+      touchY = toCanvasY(e.touches[0].clientY);
     }
   }
-  function onTouchEnd() {
-    state.touching = false;
-    state.touchY = null;
-  }
-  canvas.addEventListener('touchstart', onTouch, { passive: false });
-  canvas.addEventListener('touchmove', onTouch, { passive: false });
-  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
-  canvas.addEventListener('touchcancel', onTouchEnd, { passive: false });
+  function onTouchEnd() { touching = false; touchY = null; }
+  canvas.addEventListener('touchstart', onTouch, { passive:false });
+  canvas.addEventListener('touchmove', onTouch, { passive:false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive:true });
+  canvas.addEventListener('touchcancel', onTouchEnd, { passive:true });
 
+  // ===== LOOP =====
   let last = performance.now();
   function step(now){
     const dt = Math.min(0.033, (now - last)/1000);
@@ -197,41 +215,38 @@ And something else is watching.<br>
   }
   requestAnimationFrame(step);
 
+  // ===== UPDATE =====
   function update(dt){
     const { PAD_W, PAD_H, BALL, SPEED } = dims();
 
-    // Player movement: keyboard or touch
+    // Player movement (touch or keyboard)
     const maxVy = SPEED * 0.95;
-
-    if (state.touching && state.touchY != null) {
-      // Smoothly move paddle center toward touchY
-      const targetY = state.touchY - PAD_H / 2;
-      const clampY = Math.max(0, Math.min(canvas.height - PAD_H, targetY));
-      const diff = clampY - player.y;
-      player.vy = diff * 12; // follow factor
-      // Limit velocity so it feels fair
-      if (player.vy > maxVy) player.vy = maxVy;
-      if (player.vy < -maxVy) player.vy = -maxVy;
+    if (touching && touchY != null) {
+      const targetY = Math.max(0, Math.min(canvas.height - PAD_H, touchY - PAD_H/2));
+      const diff = targetY - player.y;
+      player.vy = Math.max(-maxVy, Math.min(maxVy, diff * 12));
     } else {
-      // Keyboard fallback
       let target = 0;
       if (state.keys.up || state.keys.w) target = -maxVy;
       if (state.keys.down || state.keys.s) target =  maxVy;
       player.vy += (target - player.vy) * Math.min(1, dt * 12);
     }
-
     player.y += player.vy * dt;
     player.y = Math.max(0, Math.min(canvas.height - PAD_H, player.y));
 
-    // AI movement
-    const aiCenter = ai.y + PAD_H/2;
-    const targetY = ball.y + ball.vy * 0.12;
-    const aiSpeed = SPEED * 0.75;
-    if (aiCenter < targetY - 6) ai.vy = aiSpeed;
-    else if (aiCenter > targetY + 6) ai.vy = -aiSpeed;
-    else ai.vy = 0;
-    ai.y += ai.vy * dt;
-    ai.y = Math.max(0, Math.min(canvas.height - PAD_H, ai.y));
+    // AI movement (freeze if glitch)
+    if (!state.glitchActive) {
+      const aiCenter = ai.y + PAD_H/2;
+      const targetY = ball.y + ball.vy * 0.12;
+      const aiSpeed = SPEED * 0.75;
+      if (aiCenter < targetY - 6) ai.vy = aiSpeed;
+      else if (aiCenter > targetY + 6) ai.vy = -aiSpeed;
+      else ai.vy = 0;
+      ai.y += ai.vy * dt;
+      ai.y = Math.max(0, Math.min(canvas.height - PAD_H, ai.y));
+    } else {
+      ai.vy = 0; // "stops working"
+    }
 
     // Ball physics
     ball.x += ball.vx * dt;
@@ -242,7 +257,7 @@ And something else is watching.<br>
       ball.y = canvas.height - BALL; ball.vy *= -1;
     }
 
-    // Collisions
+    // Paddle collisions
     if (ball.x <= player.x + PAD_W && ball.x >= player.x - BALL) {
       if (ball.y + BALL >= player.y && ball.y <= player.y + PAD_H) {
         ball.x = player.x + PAD_W;
@@ -266,27 +281,50 @@ And something else is watching.<br>
       }
     }
 
-    // Scoring + end conditions (1 for you, 100 for AI)
+    // Scoring
     const outLeft = ball.x < -BALL;
     const outRight = ball.x > canvas.width + BALL;
     if (outLeft || outRight) {
-      if (outLeft) state.scoreR++;
-      if (outRight) state.scoreL++;
+      if (outLeft) {
+        state.scoreR++;
+        state.aiPointTotal++;
 
-      if (state.scoreL >= 1) {
+        // Trigger glitch at configured cumulative AI points
+        if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
+          state.glitchActive = true;
+        }
+      } else if (outRight) {
+        state.scoreL++;
+
+        // Clear glitch if configured
+        if (state.glitchActive && GLITCH_CLEAR_ON_SCORE) {
+          state.glitchActive = false;
+        }
+      }
+
+      // End-of-match checks
+      if (state.scoreL >= PLAYER_WIN_POINTS) {
         state.gameOver = true;
         state.winner = "player";
-      } else if (state.scoreR >= 100) {
+      } else if (state.scoreR >= AI_WIN_POINTS) {
         state.gameOver = true;
         state.winner = "ai";
+
+        // Count AI match wins; skip configured number
+        let nextWins = state.aiMatchWins + 1;
+        if (nextWins === AI_MATCH_SKIP) nextWins = AI_MATCH_SKIP_TO;
+        state.aiMatchWins = nextWins;
       } else {
-        resetPositions(outRight);
+        resetPositions(outRight); // serve toward conceding side
       }
     }
   }
 
+  // ===== DRAW =====
   function draw(){
     const { PAD_W, PAD_H, BALL } = dims();
+
+    // Field
     ctx.fillStyle = '#000';
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
@@ -300,7 +338,7 @@ And something else is watching.<br>
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Objects
+    // Paddles & ball
     ctx.fillStyle = '#e6e6e6';
     ctx.fillRect(player.x, player.y, PAD_W, PAD_H);
     ctx.fillRect(ai.x, ai.y, PAD_W, PAD_H);
@@ -314,7 +352,25 @@ And something else is watching.<br>
     ctx.fillText(state.scoreL, canvas.width*0.25, 8);
     ctx.fillText(state.scoreR, canvas.width*0.75, 8);
 
-    // Game over overlay
+    // Glitch overlay
+    if (state.glitchActive) {
+      ctx.fillStyle = 'rgba(255,0,0,0.08)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#f55';
+      ctx.font = `bold ${Math.round(canvas.height*0.10)}px Courier New, monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SYSTEM ERROR', canvas.width/2, canvas.height*0.35);
+
+      ctx.font = `bold ${Math.round(canvas.height*0.06)}px Courier New, monospace`;
+      ctx.fillStyle = '#faa';
+      ctx.fillText('AI MODULE OFFLINE', canvas.width/2, canvas.height*0.50);
+
+      ctx.font = `bold ${Math.round(canvas.height*0.045)}px Courier New, monospace`;
+      ctx.fillStyle = '#fcc';
+      ctx.fillText('Score a point to restore control', canvas.width/2, canvas.height*0.64);
+    }
+
+    // Game Over
     if (state.gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -322,9 +378,15 @@ And something else is watching.<br>
       ctx.font = `bold ${Math.round(canvas.height*0.14)}px Courier New, monospace`;
       ctx.textBaseline = 'middle';
       ctx.fillText(state.winner === "player" ? "YOU WIN" : "YOU LOSE", canvas.width/2, canvas.height/2);
+
+      // (Optional debug readout – remove if you want)
+      ctx.fillStyle = '#bbb';
+      ctx.font = `bold ${Math.round(canvas.height*0.04)}px Courier New, monospace`;
+      ctx.textBaseline = 'top';
+      ctx.fillText(`AI match wins: ${state.aiMatchWins}`, canvas.width/2, canvas.height*0.72);
     }
 
-    // Pause overlay
+    // Pause
     if (state.paused && !state.gameOver) {
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -336,6 +398,7 @@ And something else is watching.<br>
   }
 })();
 </script>
+
 
 <!-- === /PONG === -->
 </body>

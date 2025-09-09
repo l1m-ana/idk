@@ -336,6 +336,11 @@ And something else is watching.<br>
         state.scoreR++;
         state.aiPointTotal++;
 
+          // Count AI match wins; skip configured number
+        let nextWins = state.aiMatchWins + 1;
+        if (nextWins === AI_MATCH_SKIP) nextWins = AI_MATCH_SKIP_TO;
+        state.aiMatchWins = nextWins;
+
         // Trigger glitch at configured cumulative AI points
         if (!state.glitchActive && state.aiPointTotal === GLITCH_TRIGGER_POINTS) {
           state.glitchActive = true;
@@ -357,10 +362,7 @@ And something else is watching.<br>
         state.gameOver = true;
         state.winner = "ai";
 
-        // Count AI match wins; skip configured number
-        let nextWins = state.aiMatchWins + 1;
-        if (nextWins === AI_MATCH_SKIP) nextWins = AI_MATCH_SKIP_TO;
-        state.aiMatchWins = nextWins;
+      
       } else {
         resetPositions(outRight); // serve toward conceding side
       }

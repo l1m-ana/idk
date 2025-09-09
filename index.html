@@ -36,86 +36,83 @@ body {
        color: #cde; 
   text-shadow: 0 0 2px #00994d;
     }
-    @media (max-width: 600px) {
-  h1.glitch {
-    text-shadow: 0 0 1px #00ff66, 0 0 3px #00ff66; /* even softer on phones */
+
+  @media (max-width: 600px) {
+    h1.glitch {
+      text-shadow: 0 0 1px #00ff66, 0 0 3px #00ff66; /* even softer on phones */
+    }
+  } /* ✅
+
+    /* Top-only static/flicker layer stays GLOBAL so it applies everywhere */
+  .glitch::before {
+    content: attr(data-text);
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 40%;
+    color: #8affb2;
+    text-shadow: 0 0 3px #8affb2, 0 0 8px #8affb2;
+    overflow: hidden;
+    pointer-events: none;
+    animation: staticy 0.35s infinite steps(2, end);
+    mix-blend-mode: screen;
+  }
+  @keyframes staticy {
+    0%   { clip-path: inset(0 0 72% 0); transform: translate(1px, -1px); }
+    20%  { clip-path: inset(0 0 58% 0); transform: translate(-1px, 1px); }
+    40%  { clip-path: inset(0 0 65% 0); transform: translate(2px, 0); }
+    60%  { clip-path: inset(0 0 60% 0); transform: translate(-2px, -1px); }
+    80%  { clip-path: inset(0 0 70% 0); transform: translate(0, 1px); }
+    100% { clip-path: inset(0 0 62% 0); transform: translate(1px, 0); }
   }
 
-    /* CHANGED: Top-only static/flicker layer */
-    .glitch::before {
-      content: attr(data-text);
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 40%;              /* only affect the top portion */
-      color: #8affb2;           /* slightly different green for eerie contrast */
-      text-shadow: 0 0 3px #8affb2, 0 0 8px #8affb2;
-      overflow: hidden;
-      pointer-events: none;
-      animation: staticy 0.35s infinite steps(2, end);
-      mix-blend-mode: screen;   /* makes the overlay feel more 'video-ish' */
-    }
+ /* ✅ GLOBAL hotspot styles (apply on desktop too) */
+  #hotspot {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9999;
+    background: radial-gradient(circle at 35% 35%, #fff 0%, #fff 25%, #ffe066 45%, #ff9f1c 65%, rgba(255,159,28,0.0) 75%);
+    box-shadow:
+      0 0 10px 4px #ffd166,
+      0 0 28px 10px rgba(255, 159, 28, 0.55),
+      inset 0 0 10px rgba(255,255,255,0.7);
+  }
 
-    /* CHANGED: Remove old ::after glitch & keyframes; new static animation */
-    @keyframes staticy {
-      0%   { clip-path: inset(0 0 72% 0); transform: translate(1px, -1px); }
-      20%  { clip-path: inset(0 0 58% 0); transform: translate(-1px, 1px); }
-      40%  { clip-path: inset(0 0 65% 0); transform: translate(2px, 0); }
-      60%  { clip-path: inset(0 0 60% 0); transform: translate(-2px, -1px); }
-      80%  { clip-path: inset(0 0 70% 0); transform: translate(0, 1px); }
-      100% { clip-path: inset(0 0 62% 0); transform: translate(1px, 0); }
-    }
 
-      /* Secret bright spot (bottom-right). Move with 'top/left' if you prefer another corner */
-#hotspot {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 9999;
+ .pop-12 {
+    position: fixed;
+    font-family: "Courier New", monospace;
+    font-weight: 700;
+    color: #12ff85;
+    text-shadow: 0 0 4px #12ff85, 0 0 8px rgba(18,255,133,0.6);
+    pointer-events: none;
+    z-index: 10000;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+    animation: float12 900ms ease-out forwards;
+  }
 
-  /* Bright glow with a hot core */
-  background: radial-gradient(circle at 35% 35%, #fff 0%, #fff 25%, #ffe066 45%, #ff9f1c 65%, rgba(255,159,28,0.0) 75%);
-  box-shadow:
-    0 0 10px 4px #ffd166,
-    0 0 28px 10px rgba(255, 159, 28, 0.55),
-    inset 0 0 10px rgba(255,255,255,0.7);
-}
+  @keyframes float12 {
+    0%   { opacity: 0; transform: translate(-50%, -50%) translateY(8px) scale(0.85); }
+    10%  { opacity: 1; }
+    70%  { opacity: 1; transform: translate(-50%, -50%) translateY(-28px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-44px) scale(1.06); }
+  }
 
-/* Floating “12”s */
-.pop-12 {
-  position: fixed;
-  font-family: "Courier New", monospace;
-  font-weight: 700;
-  color: #12ff85;
-  text-shadow: 0 0 4px #12ff85, 0 0 8px rgba(18,255,133,0.6);
-  pointer-events: none;
-  z-index: 10000;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.85);
-  animation: float12 900ms ease-out forwards;
-}
-      @keyframes float12 {
-  0%   { opacity: 0; transform: translate(-50%, -50%) translateY(8px) scale(0.85); }
-  10%  { opacity: 1; }
-  70%  { opacity: 1; transform: translate(-50%, -50%) translateY(-28px) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) translateY(-44px) scale(1.06); }
-}
-
-/* Optional: tone down motion for people who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .pop-12 { animation-duration: 200ms; }
-}
+  @media (prefers-reduced-motion: reduce) {
+    .pop-12 { animation-duration: 200ms; }
+  }
   </style>
 </head>
 
-  <div id="hotspot" aria-label="secret"></div>
 
 <body>
+    <div id="hotspot" aria-label="secret"></div>
+
   <h1 class="glitch" data-text="WHAT'S WRONG">WHAT'S WRONG</h1>
   <p>
     Have you felt it? We tell ourselves it’s just stress, just growing up, just the price of ambition. <br> But in the deepest part of us, we know. We know <br> SOMETHING ABOUT THIS CAMPUS IS OFF <br>

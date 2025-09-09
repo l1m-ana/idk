@@ -68,39 +68,39 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  width: 90px;      /* smaller beam */
+  width: 90px;             /* keep it small */
   height: 90px;
   cursor: pointer;
   z-index: 9999;
 
+  /* ray look */
   background: radial-gradient(
     circle at top right,
-    rgba(255, 255, 210, 0.75) 0%,
-    rgba(255, 250, 180, 0.45) 30%,
-    rgba(255, 240, 150, 0.12) 60%,
+    rgba(255,255,210,0.75) 0%,
+    rgba(255,250,180,0.45) 30%,
+    rgba(255,240,150,0.12) 60%,
     transparent 100%
   );
-
   transform-origin: top right;
   transform: rotate(-25deg) scaleY(1.1);
   mix-blend-mode: screen;
 
-  animation: flickerRay 6s infinite; /* slower flicker cycle */
+  /* ⚡ step-wise flicker: hard cuts, no tweening */
+  animation: flickerRay 7s steps(1, end) infinite;
 }
 
+/* Hard cut to dark, hold, then snap back to bright */
 @keyframes flickerRay {
-  0%, 12%, 88%, 100% {
-    opacity: 1; 
-    filter: brightness(1);
-  }
-  20%, 80% {
-    opacity: 0.1;               /* almost completely dark */
-    filter: brightness(0.3);
-  }
-  50% {
-    opacity: 0.85;              /* partial glow */
-    filter: brightness(0.9);
-  }
+  /* bright intro & brief pre-flicker flutter */
+  0%, 2%   { opacity: 1;   filter: brightness(1.05); }
+  3%       { opacity: 0.7; filter: brightness(0.9); }   /* tiny hiccup */
+  4%       { opacity: 1;   filter: brightness(1.1); }   /* back to bright */
+
+  /* 🔻 instant blackout, then hold it */
+  5%, 72%  { opacity: 0.08; filter: brightness(0.28); }
+
+  /* 🔺 instant return to full brightness, then hold */
+  73%,100% { opacity: 1;   filter: brightness(1.1); }
 }
 
 

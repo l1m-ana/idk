@@ -68,8 +68,8 @@ body {
    position: fixed;
   top: 0;
   right: 0;
-  width: 60px;       /* smaller size */
-  height: 60px;
+  width: 30px;       /* smaller size */
+  height: 30px;
   z-index: 9999;
   cursor: pointer;
 
@@ -77,9 +77,9 @@ body {
   background: radial-gradient(
     circle at top right,
     rgba(255, 255, 210, 0.9) 0%,    /* bright core */
-    rgba(255, 250, 180, 0.6) 35%,   /* soft warm halo */
-    rgba(255, 240, 150, 0.25) 70%,  /* outer faint glow */
-    rgba(255, 220, 120, 0.08) 85%, 
+    rgba(255, 250, 180, 0.6) 20%,   /* soft warm halo */
+    rgba(255, 240, 150, 0.25) 50%,  /* outer faint glow */
+    rgba(255, 220, 120, 0.08) 75%, 
     transparent 100%                /* smooth fade out */
   );
 
@@ -183,7 +183,7 @@ And something else is watching.<br>
   const PLAYER_WIN_POINTS = 2;     // your per-match winning score
   const AI_WIN_POINTS = 100;         // AI per-match winning score
 
-const GLITCH_TRIGGER_POINTS = 6; // cumulative AI points to trigger glitch
+const GLITCH_TRIGGER_POINTS = 2; // cumulative AI points to trigger glitch
   const GLITCH_CLEAR_ON_SCORE = true; // if true, your next point clears the glitch
 
   const AI_MATCH_SKIP = 2;         // when AI match wins would equal this number...

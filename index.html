@@ -65,27 +65,27 @@ body {
     100% { clip-path: inset(0 0 62% 0); transform: translate(1px, 0); }
   }
 #hotspot {
-  position: fixed;
+   position: fixed;
   top: 0;
   right: 0;
-  width: 90px;
-  height: 90px;
+  width: 60px;       /* smaller size */
+  height: 60px;
   z-index: 9999;
   cursor: pointer;
 
-  /* ray look */
+  /* smooth, round light glow */
   background: radial-gradient(
     circle at top right,
-    rgba(255,255,210,0.75) 0%,
-    rgba(255,250,180,0.45) 30%,
-    rgba(255,240,150,0.12) 60%,
-    transparent 100%
+    rgba(255, 255, 210, 0.9) 0%,    /* bright core */
+    rgba(255, 250, 180, 0.6) 35%,   /* soft warm halo */
+    rgba(255, 240, 150, 0.25) 70%,  /* outer faint glow */
+    rgba(255, 220, 120, 0.08) 85%, 
+    transparent 100%                /* smooth fade out */
   );
-  transform-origin: top right;
-  transform: rotate(-25deg) scaleY(1.1);
-  mix-blend-mode: screen;
 
-  /* Hard-cut flicker; mostly dark with short pulses */
+  border-radius: 50%;   /* round shape */
+    mix-blend-mode: screen;
+
   animation: flickerRay 8s steps(1, end) infinite;
 }
 

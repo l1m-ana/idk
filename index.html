@@ -68,10 +68,10 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  width: 90px;             /* keep it small */
+  width: 90px;
   height: 90px;
-  cursor: pointer;
   z-index: 9999;
+  cursor: pointer;
 
   /* ray look */
   background: radial-gradient(
@@ -82,26 +82,37 @@ body {
     transparent 100%
   );
   transform-origin: top right;
-  transform: rotate(-10deg) scaleY(1.1);
+  transform: rotate(-25deg) scaleY(1.1);
   mix-blend-mode: screen;
 
-  /* ⚡ step-wise flicker: hard cuts, no tweening */
-  animation: flickerRay 7s steps(1, end) infinite;
+  /* Hard-cut flicker; mostly dark with short pulses */
+  animation: flickerRay 8s steps(1, end) infinite;
 }
 
-/* Hard cut to dark, hold, then snap back to bright */
+/* Mostly dark; short “on” bursts; only clickable when visible */
 @keyframes flickerRay {
-  /* bright intro & brief pre-flicker flutter */
-  0%, 2%   { opacity: 1;   filter: brightness(1.05); }
-  3%       { opacity: 0.7; filter: brightness(0.9); }   /* tiny hiccup */
-  4%       { opacity: 1;   filter: brightness(1.1); }   /* back to bright */
+  /* long dark lead-in */
+  0%, 59%   { opacity: 0.06; filter: brightness(0.25); visibility: hidden; }
 
-  /* 🔻 instant blackout, then hold it */
-  5%, 72%  { opacity: 0.08; filter: brightness(0.28); }
+  /* pulse 1 (quick triple blink) */
+  60%       { opacity: 1;    filter: brightness(1.1);  visibility: visible; }
+  62%       { opacity: 0.45; filter: brightness(0.6);  visibility: visible; }
+  64%       { opacity: 1;    filter: brightness(1.15); visibility: visible; }
+  66%       { opacity: 0.06; filter: brightness(0.25); visibility: hidden; }
 
-  /* 🔺 instant return to full brightness, then hold */
-  73%,100% { opacity: 1;   filter: brightness(1.1); }
+  /* pulse 2 */
+  68%       { opacity: 1;    filter: brightness(1.1);  visibility: visible; }
+  70%       { opacity: 0.06; filter: brightness(0.25); visibility: hidden; }
+
+  /* pulse 3 */
+  74%       { opacity: 1;    filter: brightness(1.1);  visibility: visible; }
+  76%       { opacity: 0.06; filter: brightness(0.25); visibility: hidden; }
+
+  /* rare single flash near the end */
+  85%       { opacity: 1;    filter: brightness(1.1);  visibility: visible; }
+  86%,100%  { opacity: 0.06; filter: brightness(0.25); visibility: hidden; }
 }
+
 
 
 

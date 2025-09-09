@@ -69,43 +69,38 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  width: 160px;     /* length of the ray */
-  height: 160px;    /* spread of the ray */
-  pointer-events: auto;
+  width: 90px;      /* smaller beam width */
+  height: 90px;     /* smaller beam height */
   cursor: pointer;
   z-index: 9999;
 
-  /* light beam gradient, angled out of the corner */
   background: radial-gradient(
     circle at top right,
     rgba(255, 255, 210, 0.75) 0%,
-    rgba(255, 250, 180, 0.5) 25%,
-    rgba(255, 240, 150, 0.2) 55%,
-    rgba(255, 220, 120, 0.05) 75%,
+    rgba(255, 250, 180, 0.5) 30%,
+    rgba(255, 240, 150, 0.15) 60%,
     transparent 100%
   );
 
   transform-origin: top right;
-  transform: rotate(-25deg) scaleY(1.2); /* slant the beam */
-  mix-blend-mode: screen;                /* make it feel like light */
-  animation: flickerRay 2s infinite;
+  transform: rotate(-25deg) scaleY(1.1);
+  mix-blend-mode: screen;
+
+  /* Slower flicker — 5s cycle instead of 2s */
+  animation: flickerRay 5s infinite;
 }
 
 @keyframes flickerRay {
-  0%, 19%, 21%, 60%, 62%, 100% {
+  0%, 15%, 85%, 100% {
     opacity: 1;
     filter: brightness(1);
   }
-  20%, 61% {
-    opacity: 0.5;
+  20%, 80% {
+    opacity: 0.5;               /* goes dim */
     filter: brightness(0.6);
   }
-  40% {
-    opacity: 0.8;
-    filter: brightness(1.2);
-  }
-  80% {
-    opacity: 0.9;
+  50% {
+    opacity: 0.8;               /* mid-level light */
     filter: brightness(0.9);
   }
 }
